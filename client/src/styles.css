@@ -21,3 +21,8 @@ p{text-wrap:pretty}
 .coordinate-form input{display:block;width:100%;min-height:40px;margin-top:4px;padding:8px;border:1px solid #b9ccc7;border-radius:6px;color:#16353a;font:inherit}
 .coordinate-form button{grid-column:1/-1;min-height:40px}
 @media(max-width:640px){.chip,.profile-options button,.segmented button,.skip,.text-button,.venue-choice select,.coordinate-form input,.coordinate-form button{min-height:44px}}
+.coordinate-form input:focus-visible,.venue-choice select:focus-visible{outline:3px solid #a63b20;outline-offset:2px}
+.skipped-list{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin-top:18px;padding:11px 0;border-bottom:1px solid #e0e6e2}
+.skipped-list strong{font-size:12px;color:#47636a;margin-right:3px}
+.skipped-list .secondary{min-height:36px;padding:7px 11px;font-size:12px}
+@media(max-width:640px){.skipped-list .secondary{min-height:44px}}

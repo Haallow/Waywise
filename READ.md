@@ -25,7 +25,7 @@ The test suite uses local synthetic data only. It does not incur Google API char
 
 1. Start with coffee, groceries, church, and spa. Show that PlanB evaluates **384** complete candidate itineraries, selects a full route, and offers a Google Maps link with the chosen stop order.
 2. Switch **Fastest** to **Best-Rated**. The synthetic data produces a different venue choice and route; scores are recomputed from the cached matrix. Select the **Bottleneck** demo scenario in Fastest mode to show a fictional slow coffee → groceries leg reverse the chosen visit order.
-3. Click **Skip** on church. PlanB recalculates a route for the remaining pending errands. **Mark next stop complete** preserves the completed stop and replans from there. Use **Venue choice** to constrain a pending errand to the other candidate and recompute its route.
+3. Click **Skip** on church. PlanB recalculates a route for the remaining pending errands; **Restore Church** brings it back using the same snapshot. **Mark next stop complete** preserves the completed stop and replans from there. Use **Venue choice** to constrain a pending errand to the other candidate and recompute its route.
 4. Compare the selected route with **Nearest-next baseline**. Both use the same candidates, directed matrix, and profile weights. The chosen route may take longer if its venue quality raises its utility.
 
 All demo establishments and travel values are fictional. The sample coordinates are for a visualization and Maps URL demonstration, not a claim that those venues exist there.

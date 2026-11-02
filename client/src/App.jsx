@@ -40,6 +40,7 @@ export default function App() {
   const [revision, setRevision] = useState(0);
   const live = snapshot?.dataSource === 'google' && mode === 'live';
   const pending = categories.filter(category => statuses[category] !== 'skipped' && statuses[category] !== 'completed');
+  const skipped = categories.filter(category => statuses[category] === 'skipped');
   const effectiveOrigin = completed.length ? { ...completed.at(-1), id: completed.at(-1).placeId } : snapshot?.origin || origin || DEMO_ORIGIN;
   const candidateGroups = useMemo(() => snapshot ? Object.fromEntries(Object.entries(snapshot.groups).map(([category, group]) => [category, overrides[category] ? group.filter(place => place.placeId === overrides[category]) : group])) : {}, [snapshot, overrides]);
   const result = useMemo(() => {
@@ -119,6 +120,7 @@ export default function App() {
     }, { timeout: 10000 });
   };
   const skip = category => { setStatuses(current => ({ ...current, [category]: 'skipped' })); setError(''); };
+  const restore = category => { setStatuses(current => ({ ...current, [category]: 'pending' })); setError(''); };
   const complete = () => {
     if (!plan?.selectedStops.length) return;
     const stop = plan.selectedStops[0];
@@ -144,10 +146,11 @@ export default function App() {
         <button className="primary wide" onClick={find} disabled={!!loading}>{loading || (mode === 'live' ? 'Find places & optimize' : 'Refresh demo plan')} <span aria-hidden="true">↗</span></button>
         {loading && <p className="hint" role="status" aria-live="polite">{loading}</p>}
         {error && <p className="error" role="alert">{error}</p>}
-        <button className="text-button" onClick={reset} disabled={!!loading}>Reset demo</button>
+        <button className="text-button" onClick={reset} disabled={!!loading}>{mode === 'live' ? 'Reset to demo' : 'Reset demo'}</button>
       </aside>
       <section className="results"><div className="map-header"><div><h2>Your route, considered.</h2><p>{mode === 'demo' ? 'Synthetic travel times for a fictional trip' : live ? 'Google traffic-aware road estimate at calculation time' : 'Awaiting live place and road estimates'}</p></div><span className="snapshot">{snapshot?.matrix ? new Date(snapshot.matrix.fetchedAt).toLocaleString() : 'No snapshot'}</span></div>
         {mode === 'live' && !snapshot ? <div className="empty-state"><h3>Choose where to begin</h3><p>Use your location, click the map, or enter coordinates, then find places. A browser Maps key is needed for map selection.</p><MapPanel origin={origin} stops={[]} onPickOrigin={onPickOrigin} live /></div> : <MapPanel origin={mapOrigin} stops={plan?.selectedStops || []} onPickOrigin={onPickOrigin} live={live} />}
+        {skipped.length > 0 && <section className="skipped-list" aria-label="Skipped errands"><strong>Skipped</strong>{skipped.map(category => <button key={category} className="secondary" onClick={() => restore(category)}>Restore {LABEL[category]}</button>)}</section>}
         {plan ? <><div className="metrics"><div><span>Estimated drive</span><strong>{minutes(plan.travelDurationSec)}</strong></div><div><span>Distance</span><strong>{km(plan.travelDistanceMeters)}</strong></div><div><span>Utility score</span><strong>{percent(plan.utility)}</strong></div></div>
           {live && <p className="hint">Powered by Google, ©{new Date().getFullYear()} Google</p>}
           <div className="itinerary-head"><div><h2>Selected itinerary</h2><p>{completed.length ? `${completed.length} completed · ${pending.length} remaining` : `${plan.selectedStops.length} stops in agent-selected order`}</p></div><button className="secondary" onClick={complete}>Mark next stop complete</button></div>
