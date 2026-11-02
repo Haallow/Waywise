@@ -56,12 +56,23 @@ Ratings in Nearby Search trigger an Enterprise SKU. The interface displays real 
 
 The backend has a ten-second upstream timeout, per-IP request throttling, an element budget, bounded inputs, and sanitized error envelopes. For any public deployment, add appropriate authentication and stronger abuse controls for paid endpoints; the local development limits alone are not sufficient protection.
 
+### Guarded live validation
+
+After configuring the root server key and explicitly authorizing billable validation, run this command **once** from the project root:
+
+```bash
+npm run validate:live -- --confirm-billable --origin=14.5995,120.9842
+```
+
+The command starts a temporary local Express listener. It makes at most one Places search for each of the four demonstration errands and one Routes matrix request, without retries. It checks live source labels, calculates all three utility profiles locally, verifies that the Balanced itinerary's Place IDs match the ordered Google Maps URL, and prints the real names, IDs, estimates, snapshot time, and request count. The example origin is a Manila coordinate; pass another valid latitude and longitude if needed. The browser Maps key is needed separately to verify interactive map markers. Running `npm run validate:live` without `--confirm-billable` stops before any API request.
+
 ## What is implemented and verified
 
 - React/Vite UI, Express API, pure optimizer modules, synthetic demo data, next-best-plan comparison, greedy baseline, skip/restore and complete/undo replanning, mobile route preview, optional browser Google map markers, and ordered Google Maps URL.
 - Pure unit tests cover 8 and 384 enumerations, directed routes, unreachable and duplicate plans, missing ratings, profile trade-offs, deterministic ties, baseline scoring, completed/skipped state, duration parsing, provider normalization, and Maps URL order.
 - `npm test` (15 passing tests), `npm run build`, local dev startup, built-app serving, `/api/health`, and credential-missing API errors were checked on 2026-11-02. Impeccable's rendered detector was run at 320, 390, 768, and 1440 px widths after styling changes.
 - Headless Chrome screenshots at 390 and 1440 px were visually reviewed. At 390 px, browser actions confirmed a profile-driven venue change, skip/restore, completion, no horizontal overflow, and zero Google requests in Demo Mode. A separate no-key Live Mode check confirmed permission-denied recovery, manual coordinates, loading feedback, a missing-key error, and reset to Demo Mode. These checks do not substitute for physical-device or keyed Google testing.
+- The guarded `validate:live` command was syntax-checked and its no-flag and missing-key exits were checked without Google requests. Its billable path remains untested until keys are configured.
 - Impeccable's independent design critique is archived in `.impeccable/critique/` (24/40 before the follow-up refinements); the source detector reported zero findings. The mobile route preview, completion Undo, errand-limit hint, short comparison, and detailed disclosure address its priority findings. The disclosure was built and source-checked but its click interaction was not browser-tested after an automatic tool-policy rejection.
 
 ## Not yet verified with credentials
