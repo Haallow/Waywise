@@ -10,6 +10,7 @@ target_fingerprint: "sha256:90b3698a876b34364b1f6dbdf6c4b88b82e1fd7bbbc53e849e09
 target_path: "C:\\Users\\Tom Dwayne\\Waywise\\client\\src\\App.jsx"
 timestamp: 2026-11-02T13-52-28Z
 slug: client-src-app-jsx
+closed: true
 ---
 Method: dual-agent (A: `/root/design_assessment` · B: `/root/detector_assessment`)
 
