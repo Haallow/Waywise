@@ -542,7 +542,7 @@ Codes: `INVALID_INPUT`, `CONFIG_MISSING`, `UPSTREAM_RATE_LIMITED`, `UPSTREAM_TIM
 ### Phase 5 — Validate, polish, document
 
 - [x] Run all tests, lint if configured, and production build. (No lint script configured.)
-- [ ] Check desktop/mobile usability, error/loading/permission-denied states.
+- [x] Check desktop/mobile usability, error/loading/permission-denied states. (Headless Chrome screenshots and UI actions; physical device and live-key map remain unverified.)
 - [x] Test at least 3 scenarios and record baseline comparisons in READ.md.
 - [x] Update READ.md with exact run commands, current limitations, and what was actually implemented.
 - [ ] Print a completion summary: files, tests, build, tested live/demo paths, outstanding blockers. Do not say live tested without live credentials/test call.

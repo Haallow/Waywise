@@ -27,3 +27,15 @@ Target: `client/src/App.jsx`, `client/src/MapPanel.jsx`, and `client/src/styles.
 ## Verification notes
 
 `npm test` passed 15 tests; `npm run build` passed. The Impeccable source scan and rendered scans at 320, 768, and 1440 px returned `[]`. The computer-use browser host was unavailable, so no browser interaction, overlay, physical-device check, or live-key Google session was performed. The live map, permission-denied path, focus order, text zoom, and touch input remain unverified. No live Google credentials were present.
+
+## Follow-up refinement
+
+The three source-level findings above were addressed after this audit snapshot: the repeated core palette and schematic SVG now share CSS color variables; the brand and action arrows use one SVG; and small 11–12 px text roles were raised by 1 px. The stylesheet was formatted and overlapping late overrides were consolidated. Font imports now load only the Latin subset used by the English interface.
+
+After these changes, `npm test` still passed all 15 tests and `npm run build` passed. Impeccable rendered scans at 320×720, 390×844, 768×900, and 1440×900 returned `[]`. Headless Chrome screenshots at 390 and 1440 px were visually inspected; a 390 px browser walkthrough verified profile recomputation, skip/restore, completion, and no horizontal overflow or Google requests in Demo Mode. A no-key Live Mode walkthrough verified permission denial, manual coordinates, loading, error, and reset. The physical-phone, zoom, full keyboard/screen-reader, touch, and live-key checks remain open; the original 14/20 score is retained as an audit snapshot rather than presented as a post-refinement score.
+
+## Independent critique and subsequent changes
+
+With user authorization, Impeccable's two independent critique assessments produced a 24/40 design review and zero deterministic detector findings. The archived report is in `.impeccable/critique/`. Its five priority issues led to a mobile route preview with an early itinerary jump and Maps link, a visible explanation of the four-errand limit, explicit completion with Undo, a plain-language comparison near metrics, and removal of the redundant Demo Mode refresh action. A native disclosure now holds the detailed score and baseline panels.
+
+The mobile preview, paired Maps URLs, completion Undo (including after all stops), and errand-category unlocking were exercised in headless Chrome. The final attempt to exercise the new disclosure click was rejected by automatic tool policy, so that interaction remains unverified. No post-refinement critique score is claimed.

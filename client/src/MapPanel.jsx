@@ -50,7 +50,7 @@ export default function MapPanel({ origin, stops, onPickOrigin, live }) {
   const minLng = Math.min(...points.map(p => p.longitude)), maxLng = Math.max(...points.map(p => p.longitude));
   const xy = p => ({ x: 8 + 84 * (p.longitude - minLng) / Math.max(0.005, maxLng - minLng), y: 85 - 70 * (p.latitude - minLat) / Math.max(0.005, maxLat - minLat) });
   return <div className="map-wrap schematic"><svg viewBox="0 0 100 100" role="img" aria-label="Schematic plot of the selected stops">
-    <path d={points.map((p, i) => `${i ? 'L' : 'M'}${xy(p).x} ${xy(p).y}`).join(' ')} fill="none" stroke="#ef6b43" strokeWidth="1.1" strokeDasharray="2.5 2" />
-    {points.map((p, i) => <g key={i}><circle cx={xy(p).x} cy={xy(p).y} r="4" fill={i ? '#103e47' : '#ef6b43'} /><text x={xy(p).x} y={xy(p).y + 1.5} fill="white" textAnchor="middle" fontSize="4" fontWeight="700">{i || 'S'}</text></g>)}
+    <path d={points.map((p, i) => `${i ? 'L' : 'M'}${xy(p).x} ${xy(p).y}`).join(' ')} fill="none" stroke="var(--color-map-route)" strokeWidth="1.1" strokeDasharray="2.5 2" />
+    {points.map((p, i) => <g key={i}><circle cx={xy(p).x} cy={xy(p).y} r="4" fill={i ? 'var(--color-deep)' : 'var(--color-map-route)'} /><text x={xy(p).x} y={xy(p).y + 1.5} fill="var(--color-surface)" textAnchor="middle" fontSize="4" fontWeight="700">{i || 'S'}</text></g>)}
   </svg><p className="map-note">Schematic straight-line plot of the stop order. It is not a road route. {live ? 'Add a restricted browser Maps key for an interactive map and manual origin selection.' : 'Demo locations are fictional.'}</p></div>;
 }

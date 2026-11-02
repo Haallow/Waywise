@@ -23,10 +23,10 @@ The test suite uses local synthetic data only. It does not incur Google API char
 
 ## Class demonstration
 
-1. Start with coffee, groceries, church, and spa. Show that PlanB evaluates **384** complete candidate itineraries, selects a full route, and offers a Google Maps link with the chosen stop order.
+1. Start with coffee, groceries, church, and spa. Show that PlanB evaluates **384** complete candidate itineraries, selects a full route, and offers a Google Maps link with the chosen stop order. On mobile, the route preview and Maps link appear above the planner.
 2. Switch **Fastest** to **Best-Rated**. The synthetic data produces a different venue choice and route; scores are recomputed from the cached matrix. Select the **Bottleneck** demo scenario in Fastest mode to show a fictional slow coffee → groceries leg reverse the chosen visit order.
-3. Click **Skip** on church. PlanB recalculates a route for the remaining pending errands; **Restore Church** brings it back using the same snapshot. **Mark next stop complete** preserves the completed stop and replans from there. Use **Venue choice** to constrain a pending errand to the other candidate and recompute its route.
-4. Compare the selected route with **Nearest-next baseline**. Both use the same candidates, directed matrix, and profile weights. The chosen route may take longer if its venue quality raises its utility.
+3. Click **Skip** on church. PlanB recalculates a route for the remaining pending errands; **Restore Church** brings it back using the same snapshot. **Mark Juniper Cup complete** preserves the completed stop and replans from there; **Undo Juniper Cup completion** restores it. Use **Venue choice** to constrain a pending errand to the other candidate and recompute its route.
+4. Open **Show detailed comparison** to inspect the selected route and **Nearest-next baseline**. Both use the same candidates, directed matrix, and profile weights. The chosen route may take longer if its venue quality raises its utility.
 
 All demo establishments and travel values are fictional. The sample coordinates are for a visualization and Maps URL demonstration, not a claim that those venues exist there.
 
@@ -58,9 +58,11 @@ The backend has a ten-second upstream timeout, per-IP request throttling, an ele
 
 ## What is implemented and verified
 
-- React/Vite UI, Express API, pure optimizer modules, synthetic demo data, next-best-plan comparison, greedy baseline, skip/complete replanning, optional browser Google map markers, and ordered Google Maps URL.
+- React/Vite UI, Express API, pure optimizer modules, synthetic demo data, next-best-plan comparison, greedy baseline, skip/restore and complete/undo replanning, mobile route preview, optional browser Google map markers, and ordered Google Maps URL.
 - Pure unit tests cover 8 and 384 enumerations, directed routes, unreachable and duplicate plans, missing ratings, profile trade-offs, deterministic ties, baseline scoring, completed/skipped state, duration parsing, provider normalization, and Maps URL order.
 - `npm test` (15 passing tests), `npm run build`, local dev startup, built-app serving, `/api/health`, and credential-missing API errors were checked on 2026-11-02. Impeccable's rendered detector was run at 320, 390, 768, and 1440 px widths after styling changes.
+- Headless Chrome screenshots at 390 and 1440 px were visually reviewed. At 390 px, browser actions confirmed a profile-driven venue change, skip/restore, completion, no horizontal overflow, and zero Google requests in Demo Mode. A separate no-key Live Mode check confirmed permission-denied recovery, manual coordinates, loading feedback, a missing-key error, and reset to Demo Mode. These checks do not substitute for physical-device or keyed Google testing.
+- Impeccable's independent design critique is archived in `.impeccable/critique/` (24/40 before the follow-up refinements); the source detector reported zero findings. The mobile route preview, completion Undo, errand-limit hint, short comparison, and detailed disclosure address its priority findings. The disclosure was built and source-checked but its click interaction was not browser-tested after an automatic tool-policy rejection.
 
 ## Not yet verified with credentials
 
