@@ -30,6 +30,17 @@ The test suite uses local synthetic data only. It does not incur Google API char
 
 All demo establishments and travel values are fictional. The sample coordinates are for a visualization and Maps URL demonstration, not a claim that those venues exist there.
 
+The following values come from running the local optimizer on the fictional demo snapshot. They illustrate the class scenarios; they are not measured Google travel times.
+
+| Demo scenario | Preference | Selected visit order | Agent drive | Greedy drive | Agent / greedy utility |
+| --- | --- | --- | ---: | ---: | ---: |
+| Standard | Fastest | Juniper Cup → Lantern Market → Willow Chapel → Moss Day Spa | 20.1 min | 20.1 min | 60.3% / 60.3% |
+| Standard | Best-Rated | Cobalt Coffee Room → Cedar & Stone Grocer → Harborlight Church → Orchid Hour Spa | 42.2 min | 20.1 min | 77.0% / 62.7% |
+| Bottleneck | Fastest | Lantern Market → Juniper Cup → Willow Chapel → Moss Day Spa | 18.6 min | 23.9 min | 62.0% / 56.5% |
+| Standard, church skipped | Balanced | Juniper Cup → Lantern Market → Moss Day Spa | 15.8 min | 15.8 min | 64.8% / 64.8% |
+
+The full four-errand examples each enumerate 384 complete plans. Skipping church leaves 48. The bottleneck case saves 5.3 simulated driving minutes against the nearest-next baseline; the Best-Rated case accepts a longer drive for higher modeled venue quality.
+
 ## Live Google setup
 
 A Google Cloud project with billing enabled may be required. Free allowances are not a guarantee of zero cost. Set conservative quotas and a billing alert. Enable **Places API (New)**, **Routes API**, and **Maps JavaScript API**.

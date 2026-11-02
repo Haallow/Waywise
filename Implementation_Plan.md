@@ -492,59 +492,59 @@ Codes: `INVALID_INPUT`, `CONFIG_MISSING`, `UPSTREAM_RATE_LIMITED`, `UPSTREAM_TIM
 
 ### Phase 0 — Bootstrap and safety
 
-- [ ] Initialize `client/` Vite React, `server/` Express, root scripts using npm workspaces **or** a simple `concurrently` script; choose the simpler robust option.
-- [ ] Create `.gitignore`: `.env`, `.env.*` (except `*.example`), `node_modules`, `dist`, logs, caches.
-- [ ] Create `.env.example` with documented keys; never include live keys.
-- [ ] Add `GET /api/health`, basic error handling, and a `npm run dev` command that launches client and backend.
-- [ ] Verify project starts without credentials in **Demo Mode**.
+- [x] Initialize `client/` Vite React, `server/` Express, root scripts using npm workspaces **or** a simple `concurrently` script; choose the simpler robust option.
+- [x] Create `.gitignore`: `.env`, `.env.*` (except `*.example`), `node_modules`, `dist`, logs, caches.
+- [x] Create `.env.example` with documented keys; never include live keys.
+- [x] Add `GET /api/health`, basic error handling, and a `npm run dev` command that launches client and backend.
+- [x] Verify project starts without credentials in **Demo Mode**.
 
 **Gate:** Dev server starts, app loads, no secrets checked in.
 
 ### Phase 1 — Pure agent engine FIRST
 
-- [ ] Add tiny, internally consistent synthetic dataset: starting point, 2 candidates for each of 4 errands, directional travel matrix (seconds, meters), and plausible *explicitly fictional* ratings.
-- [ ] Implement errand groups, permutations, cartesian product, infeasibility checks, score normalization, 3 utility profiles, tie-breaks.
-- [ ] Implement nearest-next greedy baseline and numerical comparison.
-- [ ] Unit test the algorithm for correctness before integrating Google API calls.
+- [x] Add tiny, internally consistent synthetic dataset: starting point, 2 candidates for each of 4 errands, directional travel matrix (seconds, meters), and plausible *explicitly fictional* ratings.
+- [x] Implement errand groups, permutations, cartesian product, infeasibility checks, score normalization, 3 utility profiles, tie-breaks.
+- [x] Implement nearest-next greedy baseline and numerical comparison.
+- [x] Unit test the algorithm for correctness before integrating Google API calls.
 
 **Gate:** The selected route is computed—not hardcoded—and changes when dataset/profile changes.
 
 ### Phase 2 — UI and Maps URL
 
-- [ ] Implement errand selector (2–4), strategy selector, itinerary panel, agent explanation, reset, skip/replan.
-- [ ] Build Google Maps URL from ordered stops; use Place IDs when valid.
-- [ ] Display markers on Google Map when browser key is available; otherwise provide a graceful demo map placeholder/list visualization, not a crash.
-- [ ] Add geolocation button and map-click origin input (when map available).
-- [ ] Make status "DEMO DATA" highly visible when simulating.
+- [x] Implement errand selector (2–4), strategy selector, itinerary panel, agent explanation, reset, skip/replan.
+- [x] Build Google Maps URL from ordered stops; use Place IDs when valid.
+- [x] Display markers on Google Map when browser key is available; otherwise provide a graceful demo map placeholder/list visualization, not a crash. (Implemented; keyed live map remains unverified.)
+- [x] Add geolocation button and map-click origin input (when map available). (Implemented; keyed map click remains unverified.)
+- [x] Make status "DEMO DATA" highly visible when simulating.
 
 **Gate:** Offline demo shows full choose → optimize → replan → Google Maps link flow, even if only synthetic coordinates are available.
 
 ### Phase 3 — Live Places integration
 
-- [ ] Create protected server-side Places adapter, config validation, fetch timeout, normalized response.
+- [x] Create protected server-side Places adapter, config validation, fetch timeout, normalized response.
 - [ ] Confirm place types/fields and small radius with one manual API call only after key setup.
-- [ ] Add category searches and shortlist 2 candidates from up to 5 per category.
-- [ ] Handle 0 results, missing rating/count, duplicates, and non-operational places without inventing values.
-- [ ] Display "LIVE GOOGLE DATA" only when real responses are used.
+- [x] Add category searches and shortlist 2 candidates from up to 5 per category.
+- [x] Handle 0 results, missing rating/count, duplicates, and non-operational places without inventing values.
+- [x] Display "LIVE GOOGLE DATA" only when real responses are used.
 
 **Gate:** At least two selected categories return real place names + coordinates correctly, with ratings only if provided.
 
 ### Phase 4 — Live traffic-aware Routes integration
 
-- [ ] Build 1+N node matrix through backend; include status/condition and index mapping.
-- [ ] Ensure pairs are directional, unreachable legs handled, durations parsed from seconds-string format.
-- [ ] Reuse matrix for utility profile toggles; do not auto-refetch on each click.
-- [ ] Show traffic snapshot time and estimate limitation.
+- [x] Build 1+N node matrix through backend; include status/condition and index mapping.
+- [x] Ensure pairs are directional, unreachable legs handled, durations parsed from seconds-string format.
+- [x] Reuse matrix for utility profile toggles; do not auto-refetch on each click.
+- [x] Show traffic snapshot time and estimate limitation.
 - [ ] Test one real 4-errand session end-to-end and verify selected names/IDs in Google Maps.
 
 **Gate:** One live 4-stop itinerary uses actual Google Places and Routes estimates, yields working Google Maps directions URL, with no fake values.
 
 ### Phase 5 — Validate, polish, document
 
-- [ ] Run all tests, lint if configured, and production build.
+- [x] Run all tests, lint if configured, and production build. (No lint script configured.)
 - [ ] Check desktop/mobile usability, error/loading/permission-denied states.
-- [ ] Test at least 3 scenarios and record baseline comparisons.
-- [ ] Update READ.md with exact run commands, current limitations, and what was actually implemented.
+- [x] Test at least 3 scenarios and record baseline comparisons in READ.md.
+- [x] Update READ.md with exact run commands, current limitations, and what was actually implemented.
 - [ ] Print a completion summary: files, tests, build, tested live/demo paths, outstanding blockers. Do not say live tested without live credentials/test call.
 
 **Gate:** Ready for class demo even if Google quota fails, by switching to explicit Demo Mode.
