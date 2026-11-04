@@ -4,15 +4,15 @@ import { googleMapsUrl } from '../client/src/agent/googleMapsUrl.js';
 import { optimize } from '../client/src/agent/optimizer.js';
 import { demoSnapshot } from '../client/src/services/demoData.js';
 
-test('navigation preserves four ordered stops and encodes place IDs', () => {
+test('navigation preserves four ordered coordinate stops', () => {
   const origin = { latitude: 14.1, longitude: 121.1 };
   const stops = [1, 2, 3, 4].map(n => ({ latitude: 14 + n / 100, longitude: 121 + n / 100, placeId: `id-${n}`, dataSource: 'google' }));
   const url = new URL(googleMapsUrl(origin, stops));
   assert.equal(url.searchParams.get('origin'), '14.1,121.1');
   assert.equal(url.searchParams.get('waypoints'), '14.01,121.01|14.02,121.02|14.03,121.03');
   assert.equal(url.searchParams.get('destination'), '14.04,121.04');
-  assert.equal(url.searchParams.get('waypoint_place_ids'), 'id-1|id-2|id-3');
-  assert.equal(url.searchParams.get('destination_place_id'), 'id-4');
+  assert.equal(url.searchParams.get('waypoint_place_ids'), null);
+  assert.equal(url.searchParams.get('destination_place_id'), null);
   assert.equal(url.searchParams.get('travelmode'), 'driving');
   assert.ok(googleMapsUrl(origin, stops).includes('%7C'));
 });
@@ -20,6 +20,27 @@ test('navigation preserves four ordered stops and encodes place IDs', () => {
 test('synthetic stops do not claim Google place IDs', () => {
   const url = new URL(googleMapsUrl({ latitude: 1, longitude: 2 }, [{ latitude: 3, longitude: 4, placeId: 'demo-a', dataSource: 'demo' }]));
   assert.equal(url.searchParams.get('destination_place_id'), null);
+});
+
+test('matched Google place IDs preserve destination and waypoint order', () => {
+  const stops = [1, 2, 3].map(n => ({ latitude: 14 + n / 100, longitude: 121 + n / 100,
+    placeId: `node/${n}`, rating: { googlePlaceId: `ChIJ${n}` } }));
+  const url = new URL(googleMapsUrl({ latitude: 1, longitude: 2 }, stops));
+  assert.equal(url.searchParams.get('waypoints'), '14.01,121.01|14.02,121.02');
+  assert.equal(url.searchParams.get('waypoint_place_ids'), 'ChIJ1|ChIJ2');
+  assert.equal(url.searchParams.get('destination'), '14.03,121.03');
+  assert.equal(url.searchParams.get('destination_place_id'), 'ChIJ3');
+});
+
+test('missing intermediate place IDs fall back without misaligned IDs', () => {
+  const stops = [
+    { latitude: 14.01, longitude: 121.01, placeId: 'node/1', rating: { googlePlaceId: 'ChIJ1' } },
+    { latitude: 14.02, longitude: 121.02, placeId: 'node/2' },
+    { latitude: 14.03, longitude: 121.03, placeId: 'node/3', rating: { googlePlaceId: 'ChIJ3' } },
+  ];
+  const url = new URL(googleMapsUrl({ latitude: 1, longitude: 2 }, stops));
+  assert.equal(url.searchParams.get('waypoint_place_ids'), null);
+  assert.equal(url.searchParams.get('destination_place_id'), 'ChIJ3');
 });
 
 test('skipped church is absent from the outgoing ordered route', () => {

@@ -9,7 +9,7 @@ function comparePlans(a, b) {
   if (!b) return -1;
   const delta = b.utility - a.utility;
   if (Math.abs(delta) > 1e-12) return delta;
-  return a.travelDurationSec - b.travelDurationSec || a.travelDistanceMeters - b.travelDistanceMeters ||
+  return (a.travelDurationSec ?? Infinity) - (b.travelDurationSec ?? Infinity) || a.travelDistanceMeters - b.travelDistanceMeters ||
     a.selectedStops.map(stop => stop.placeId).join('|').localeCompare(b.selectedStops.map(stop => stop.placeId).join('|'));
 }
 
@@ -24,7 +24,7 @@ export function optimize({ errands, groups, matrix, profile, originId = 'origin'
   if (pending.length > 4 || new Set(pending.map(e => e.id)).size !== pending.length || new Set(pending.map(e => e.category)).size !== pending.length) throw new Error('Expected 1–4 distinct pending errands');
   for (const errand of pending) {
     if (!groups[errand.category]?.length) return { plan: null, runnerUp: null, baseline: null, enumerated: 0, feasible: 0, reason: `No candidates for ${errand.category}.` };
-    if (groups[errand.category].length > 2) throw new Error('At most two candidates per errand');
+    if (groups[errand.category].length > 3) throw new Error('At most three candidates per errand');
   }
   let best = null;
   let runnerUp = null;

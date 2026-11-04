@@ -1,0 +1,38 @@
+services:
+  waywise:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    secrets:
+      - waywise_env
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      TRUST_PROXY: "1"
+      REDIS_URL: redis://redis:6379
+    command: ["sh", "-c", "cp /run/secrets/waywise_env /app/.env && exec npm start"]
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    expose:
+      - "3001"
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    restart: unless-stopped
+    volumes:
+      - waywise-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  waywise-redis:
+
+secrets:
+  waywise_env:
+    file: ../.env

@@ -1,4 +1,12 @@
-# PlanB technical design audit
+# PlanB technical design audit (historical)
+
+This audit records the earlier Google based interface. Waywise migrated to the OSM/ORS stack afterward; its current implementation and verified status are described in `READ.md`.
+
+## Current Waywise migration review — 2026-11-02
+
+Two independent Impeccable assessments reviewed the migrated app. The design critique scored **30/40** across Nielsen's ten heuristics; the source-level technical audit scored **15/20** (accessibility 3, performance 3, theming 2, responsive design 3, implementation integrity 4). The source detector and rendered detector at 320×720, 390×844, 768×900, and 1440×900 returned `[]`. The [critique snapshot](.impeccable/critique/2026-11-02T15-17-28Z__client-src-app-jsx.md) archives the findings; the previous comparable score was 24/40.
+
+The review led to fixes for the missing-baseline result crash, mobile result focus and announcement, search progress/cancellation, retention of the prior route on refresh failure, the initial Live map center, stable map panning, comparison disclosure styling, disabled controls during searches, and subdued markers for other considered venues. The Leaflet route line now uses the CSS route token, primary action arrows share one SVG, and unused schematic-map styles were removed. Other hard-coded CSS colors remain a low-priority token cleanup. A complete Zurich Overpass-backed route was verified through the guarded validation script; browser interaction, physical touch, and text zoom remain unverified. Rendered detector scans alone do not establish those behaviors.
 
 Target: `client/src/App.jsx`, `client/src/MapPanel.jsx`, and `client/src/styles.css` in the default Demo Mode. Audited 2026-11-02 with the repository-local Impeccable `audit` guidance. This is a technical audit; the formal independent-agent `critique` is pending authorization.
 

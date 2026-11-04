@@ -5,11 +5,17 @@ export function googleMapsUrl(origin, stops) {
     if (!Number.isFinite(point.latitude) || !Number.isFinite(point.longitude)) throw new Error('Missing coordinates');
     return `${point.latitude},${point.longitude}`;
   };
-  const params = new URLSearchParams({ api: '1', origin: coordinates(origin), destination: coordinates(stops.at(-1)), travelmode: 'driving' });
+  const destination = stops.at(-1);
+  const params = new URLSearchParams({ api: '1', origin: coordinates(origin), destination: coordinates(destination), travelmode: 'driving' });
   const via = stops.slice(0, -1);
-  if (via.length) params.set('waypoints', via.map(coordinates).join('|'));
-  const validGoogleId = stop => stop.dataSource === 'google' && typeof stop.placeId === 'string' && stop.placeId.length > 0;
-  if (validGoogleId(stops.at(-1))) params.set('destination_place_id', stops.at(-1).placeId);
-  if (via.length && via.every(validGoogleId)) params.set('waypoint_place_ids', via.map(stop => stop.placeId).join('|'));
+  if (via.length) {
+    params.set('waypoints', via.map(coordinates).join('|'));
+    if (via.every(stop => typeof stop.rating?.googlePlaceId === 'string' && stop.rating.googlePlaceId)) {
+      params.set('waypoint_place_ids', via.map(stop => stop.rating.googlePlaceId).join('|'));
+    }
+  }
+  if (typeof destination.rating?.googlePlaceId === 'string' && destination.rating.googlePlaceId) {
+    params.set('destination_place_id', destination.rating.googlePlaceId);
+  }
   return `https://www.google.com/maps/dir/?${params}`;
 }

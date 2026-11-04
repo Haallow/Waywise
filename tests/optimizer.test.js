@@ -1,96 +1,102 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { optimize } from '../client/src/agent/optimizer.js';
-import { placeQuality } from '../client/src/agent/scoring.js';
 import { evaluateOrder } from '../client/src/agent/baseline.js';
+import { scorePlan } from '../client/src/agent/scoring.js';
 import { demoSnapshot } from '../client/src/services/demoData.js';
+import { approximateMatrix } from '../server/providers.js';
 
-const errands = categories => categories.map(category => ({ id: category, category, status: 'pending' }));
-const runDemo = (categories, profile = 'balanced') => {
-  const { groups, matrix } = demoSnapshot(categories);
-  return optimize({ errands: errands(categories), groups, matrix, profile });
+const errands = cats => cats.map(category => ({ id: category, category, status: 'pending' }));
+const run = (cats, profile = 'balanced', scenario = 'standard') => {
+  const s = demoSnapshot(cats, scenario); return optimize({ errands: errands(cats), groups: s.groups, matrix: s.matrix, profile });
 };
-
-test('enumerates all 8 and 384 complete routes', () => {
-  assert.equal(runDemo(['coffee', 'spa']).enumerated, 8);
-  const four = runDemo(['coffee', 'groceries', 'church', 'spa']);
-  assert.equal(four.enumerated, 384);
-  assert.equal(four.feasible, 384);
-  assert.equal(four.plan.selectedStops.length, 4);
-  assert.ok(four.runnerUp);
-  assert.ok(four.plan.utility >= four.runnerUp.utility);
+test('exhaustively enumerates 8 and 384 complete plans', () => {
+  assert.equal(run(['coffee', 'spa']).enumerated, 8);
+  const four = run(['coffee', 'groceries', 'church', 'spa']);
+  assert.equal(four.enumerated, 384); assert.equal(four.feasible, 384); assert.equal(four.plan.selectedStops.length, 4);
+  assert.ok(four.plan.utility >= four.baseline.utility);
 });
-
-test('profile changes recompute venue choices, and best utility beats baseline', () => {
-  const categories = ['coffee', 'groceries', 'church', 'spa'];
-  const quick = runDemo(categories, 'fastest');
-  const rated = runDemo(categories, 'best-rated');
-  assert.notDeepEqual(quick.plan.selectedStops.map(s => s.placeId), rated.plan.selectedStops.map(s => s.placeId));
-  assert.ok(quick.plan.travelDurationSec < rated.plan.travelDurationSec);
-  assert.ok(rated.plan.qualityScore > quick.plan.qualityScore);
-  for (const result of [quick, rated]) assert.ok(result.plan.utility >= result.baseline.utility - 1e-12);
+test('three candidates per category enumerate 1,944 complete plans', () => {
+  const cats = ['coffee', 'groceries', 'church', 'spa'];
+  const groups = Object.fromEntries(cats.map(category => [category, [1, 2, 3].map(n => ({ placeId: `${category}-${n}`, category }))]));
+  const ids = ['origin', ...Object.values(groups).flat().map(p => p.placeId)];
+  const matrix = { nodes: ids.map(id => ({ id })), durationSec: ids.map((_, i) => ids.map((_, j) => i === j ? 0 : 60)), distanceMeters: ids.map((_, i) => ids.map((_, j) => i === j ? 0 : 1000)), dataSource: 'demo' };
+  const result = optimize({ errands: errands(cats), groups, matrix, profile: 'balanced' });
+  assert.equal(result.enumerated, 1944); assert.equal(result.feasible, 1944);
 });
-
-test('fictional directional bottleneck changes the selected visit order', () => {
-  const categories = ['coffee', 'groceries', 'church', 'spa'];
-  const standard = demoSnapshot(categories, 'standard');
-  const bottleneck = demoSnapshot(categories, 'bottleneck');
-  const input = snapshot => optimize({ errands: errands(categories), groups: snapshot.groups, matrix: snapshot.matrix, profile: 'fastest' });
-  assert.deepEqual(input(standard).plan.selectedStops.slice(0, 2).map(s => s.category), ['coffee', 'groceries']);
-  assert.deepEqual(input(bottleneck).plan.selectedStops.slice(0, 2).map(s => s.category), ['groceries', 'coffee']);
+test('time and distance strategies use different normalized terms', () => {
+  assert.equal(scorePlan(600, 10000, 'fastest').utility, 0.75);
+  assert.equal(scorePlan(600, 10000, 'shortest').utility, 0.5);
+  assert.equal(scorePlan(null, 10000, 'fastest').utility, 0.5);
+  const s = demoSnapshot(['coffee', 'spa']);
+  const a = optimize({ errands: errands(['coffee', 'spa']), groups: s.groups, matrix: s.matrix, profile: 'fastest' });
+  const b = optimize({ errands: errands(['coffee', 'spa']), groups: s.groups, matrix: s.matrix, profile: 'shortest' });
+  assert.notEqual(a.plan.utility, b.plan.utility);
 });
-
-test('missing ratings remain unknown but receive neutral internal model quality', () => {
-  assert.equal(placeQuality({ rating: null, userRatingCount: null }), 0.7);
-  assert.equal(placeQuality({ rating: 0, userRatingCount: 0 }), 0.7);
-  const { groups, matrix } = demoSnapshot(['coffee', 'spa']);
-  groups.coffee[0] = { ...groups.coffee[0], rating: null, userRatingCount: null };
-  assert.ok(optimize({ errands: errands(['coffee', 'spa']), groups, matrix, profile: 'balanced' }).plan);
+test('highly rated strategy uses verified ratings and keeps one matrix for baseline', () => {
+  const s = demoSnapshot(['coffee', 'spa']);
+  const plain = optimize({ errands: errands(['coffee', 'spa']), groups: s.groups, matrix: s.matrix, profile: 'rated' });
+  assert.equal(plain.plan.ratedStops, 0);
+  assert.equal(plain.plan.weights.rating, 0.7);
+  s.groups.coffee[1].rating = { source: 'google', value: 5, count: 100, url: 'https://www.google.com/maps/place/example' };
+  const rated = optimize({ errands: errands(['coffee', 'spa']), groups: s.groups, matrix: s.matrix, profile: 'rated' });
+  assert.equal(rated.plan.selectedStops.find(stop => stop.category === 'coffee').placeId, s.groups.coffee[1].placeId);
+  assert.equal(rated.plan.ratedStops, 1);
+  assert.equal(rated.baseline.utility, evaluateOrder(rated.baseline.selectedStops, s.matrix, 'rated').utility);
 });
-
-test('unreachable and duplicate venue plans are excluded; missing category is explicit', () => {
-  const { groups, matrix } = demoSnapshot(['coffee', 'spa']);
-  const index = matrix.nodes.findIndex(node => node.id === groups.coffee[0].placeId);
-  matrix.durationSec[0][index] = null;
-  const result = optimize({ errands: errands(['coffee', 'spa']), groups, matrix, profile: 'balanced' });
-  assert.ok(result.feasible < result.enumerated);
-  groups.spa[0] = { ...groups.spa[0], placeId: groups.coffee[0].placeId };
-  const duplicate = optimize({ errands: errands(['coffee', 'spa']), groups, matrix, profile: 'balanced' });
-  assert.ok(duplicate.feasible < result.feasible);
-  assert.match(optimize({ errands: errands(['coffee', 'church']), groups, matrix, profile: 'balanced' }).reason, /church/);
+test('directed bottleneck changes chosen order', () => {
+  const cats = ['coffee', 'groceries', 'church', 'spa'];
+  assert.notDeepEqual(run(cats, 'fastest').plan.selectedStops.map(s => s.placeId), run(cats, 'fastest', 'bottleneck').plan.selectedStops.map(s => s.placeId));
 });
-
-test('directed legs and stable tie breaks', () => {
-  const a = { category: 'coffee', placeId: 'a', rating: null, userRatingCount: null };
-  const b = { category: 'spa', placeId: 'b', rating: null, userRatingCount: null };
-  const matrix = { nodes: [{ id: 'origin' }, { id: 'a' }, { id: 'b' }], durationSec: [[0, 60, 60], [null, 0, 600], [null, 90, 0]], distanceMeters: [[0, 100, 100], [null, 0, 1000], [null, 120, 0]] };
-  assert.equal(evaluateOrder([a, b], matrix, 'fastest').travelDurationSec, 660);
-  assert.equal(evaluateOrder([b, a], matrix, 'fastest').travelDurationSec, 150);
-  const input = { errands: errands(['coffee', 'spa']), groups: { coffee: [a], spa: [b] }, matrix, profile: 'fastest' };
-  assert.deepEqual(optimize(input).plan.selectedStops.map(s => s.placeId), ['b', 'a']);
-  const first = runDemo(['coffee', 'spa']).plan.selectedStops.map(s => s.placeId);
-  assert.deepEqual(first, runDemo(['coffee', 'spa']).plan.selectedStops.map(s => s.placeId));
+test('missing directed legs and duplicate venues are rejected', () => {
+  const s = demoSnapshot(['coffee', 'spa']);
+  s.matrix.durationSec[0][1] = null;
+  const first = optimize({ errands: errands(['coffee', 'spa']), groups: s.groups, matrix: s.matrix, profile: 'balanced' });
+  assert.ok(first.feasible < first.enumerated);
+  s.groups.spa[0] = { ...s.groups.spa[0], placeId: s.groups.coffee[0].placeId };
+  const second = optimize({ errands: errands(['coffee', 'spa']), groups: s.groups, matrix: s.matrix, profile: 'balanced' });
+  assert.ok(second.feasible < first.feasible);
 });
-
-test('equal candidate plans choose stable place IDs and baseline uses identical score inputs', () => {
+test('approximate fallback scores distance only and shows no invented duration', () => {
+  const s = demoSnapshot(['coffee', 'spa']);
+  s.matrix = approximateMatrix(s.matrix.nodes);
+  const result = optimize({ errands: errands(['coffee', 'spa']), groups: s.groups, matrix: s.matrix, profile: 'fastest' });
+  assert.equal(result.plan.travelDurationSec, null);
+  assert.equal(result.plan.timeScore, null);
+  assert.equal(result.plan.weights.distance, 1);
+  assert.equal(result.baseline.travelDurationSec, null);
+});
+test('baseline uses same matrix and score; ties are deterministic', () => {
+  const s = demoSnapshot(['coffee', 'spa']);
+  const input = { errands: errands(['coffee', 'spa']), groups: s.groups, matrix: s.matrix, profile: 'balanced' };
+  const r = optimize(input);
+  assert.equal(r.baseline.utility, evaluateOrder(r.baseline.selectedStops, s.matrix, 'balanced').utility);
+  assert.deepEqual(r.plan.selectedStops.map(p => p.placeId), optimize(input).plan.selectedStops.map(p => p.placeId));
+});
+test('baseline rejects a venue with the wrong errand category', () => {
+  const s = demoSnapshot(['coffee', 'spa']);
+  s.groups.coffee[0] = { ...s.groups.coffee[0], category: 'spa' };
+  const result = optimize({ errands: errands(['coffee', 'spa']), groups: s.groups, matrix: s.matrix, profile: 'balanced' });
+  assert.ok(result.plan);
+  assert.ok(result.baseline);
+  assert.ok(result.baseline.selectedStops.every(stop => stop.category === stop.errandId));
+  assert.equal(result.baseline.selectedStops.find(stop => stop.category === 'coffee').placeId, 'demo-coffee-2');
+});
+test('agent can find a complete route when nearest-next reaches a dead end', () => {
   const groups = {
-    coffee: ['z', 'a'].map(placeId => ({ placeId, category: 'coffee', rating: 4, userRatingCount: 20 })),
-    spa: ['y', 'b'].map(placeId => ({ placeId, category: 'spa', rating: 4, userRatingCount: 20 })),
+    coffee: [{ placeId: 'a', category: 'coffee' }, { placeId: 'b', category: 'coffee' }],
+    spa: [{ placeId: 'c', category: 'spa' }],
   };
-  const ids = ['origin', 'z', 'a', 'y', 'b'];
-  const matrix = { nodes: ids.map(id => ({ id })), durationSec: ids.map((_, i) => ids.map((_, j) => i === j ? 0 : 60)), distanceMeters: ids.map((_, i) => ids.map((_, j) => i === j ? 0 : 100)) };
-  const result = optimize({ errands: errands(['coffee', 'spa']), groups, matrix, profile: 'balanced' });
-  assert.equal(result.enumerated, 8);
-  assert.deepEqual(result.plan.selectedStops.map(s => s.placeId), ['a', 'b']);
-  const independent = evaluateOrder(result.baseline.selectedStops, matrix, 'balanced');
-  assert.equal(result.baseline.utility, independent.utility);
-  assert.equal(result.baseline.travelDurationSec, independent.travelDurationSec);
+  const ids = ['origin', 'a', 'b', 'c'];
+  const matrix = { nodes: ids.map(id => ({ id })), durationSec: [[0, 60, 120, null], [null, 0, null, null], [null, null, 0, 60], [null, null, null, 0]], distanceMeters: [[0, 100, 200, null], [null, 0, null, null], [null, null, 0, 100], [null, null, null, 0]], dataSource: 'demo' };
+  const result = optimize({ errands: errands(['coffee', 'spa']), groups, matrix, profile: 'fastest' });
+  assert.deepEqual(result.plan.selectedStops.map(p => p.placeId), ['b', 'c']);
+  assert.equal(result.baseline, null);
 });
-
-test('skip and completion leave only pending errands to replan', () => {
-  const { groups, matrix } = demoSnapshot(['coffee', 'groceries', 'church', 'spa']);
-  const result = optimize({ errands: [{ id: 'coffee', category: 'coffee', status: 'completed' }, { id: 'church', category: 'church', status: 'skipped' }, ...errands(['groceries', 'spa'])], groups, matrix, profile: 'balanced', originId: 'demo-coffee-1' });
-  assert.deepEqual(new Set(result.plan.selectedStops.map(s => s.category)), new Set(['groceries', 'spa']));
+test('skip and completion replan pending errands from latest completed venue', () => {
+  const s = demoSnapshot(['coffee', 'groceries', 'church', 'spa']);
+  const result = optimize({ errands: [{ id: 'coffee', category: 'coffee', status: 'completed' }, { id: 'church', category: 'church', status: 'skipped' }, ...errands(['groceries', 'spa'])], groups: s.groups, matrix: s.matrix, profile: 'balanced', originId: 'demo-coffee-1' });
   assert.equal(result.enumerated, 8);
+  assert.deepEqual(new Set(result.plan.selectedStops.map(p => p.category)), new Set(['groceries', 'spa']));
   assert.equal(result.plan.legs[0].fromId, 'demo-coffee-1');
 });

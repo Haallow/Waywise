@@ -377,40 +377,46 @@ a:focus-visible {
   white-space: nowrap;
 }
 .map-wrap {
+  position: relative;
   margin: 20px 0 0;
   background: var(--color-map-surface);
   border-radius: 10px;
   overflow: hidden;
 }
-.google-map {
+.leaflet-map {
   height: 360px;
 }
-.schematic {
-  position: relative;
-  min-height: 340px;
+.demo-map .leaflet-map {
   background-color: var(--color-map-surface);
   background-image:
-    linear-gradient(
-      30deg,
-      transparent 47%,
-      rgba(48, 104, 99, 0.11) 48%,
-      rgba(48, 104, 99, 0.11) 50%,
-      transparent 51%
-    ),
-    linear-gradient(
-      150deg,
-      transparent 47%,
-      rgba(48, 104, 99, 0.09) 48%,
-      rgba(48, 104, 99, 0.09) 50%,
-      transparent 51%
-    );
-  background-size: 120px 90px;
+    linear-gradient(#c9dcd5 1px, transparent 1px),
+    linear-gradient(90deg, #c9dcd5 1px, transparent 1px);
+  background-size: 48px 48px;
 }
-.schematic svg {
-  display: block;
-  width: 100%;
-  height: 300px;
+.demo-map-key {
+  position: absolute;
+  z-index: 800;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--color-deep);
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(16, 62, 71, 0.12);
 }
+.demo-map-key strong { font-size: 12px; }
+.demo-map-key span { font-size: 11px; color: var(--color-subtle); }
+.leaflet-container .leaflet-control-attribution { padding: 8px 10px; }
+.waywise-marker { background: var(--color-deep); color: var(--color-surface); border: 2px solid var(--color-surface); border-radius: 50%; box-shadow: 0 2px 8px #0004; display: grid; place-items: center; font: 700 13px sans-serif; }
+.waywise-marker span { display: block; text-align: center; line-height: 26px; }
+.waywise-candidate-marker { background: var(--color-surface); border: 2px solid var(--color-deep); border-radius: 50%; box-shadow: 0 1px 5px #0003; display: grid; place-items: center; }
+.waywise-candidate-marker span { width: 6px; height: 6px; border-radius: 50%; background: var(--color-deep); }
+.leaflet-overlay-pane .waywise-route-line { stroke: var(--color-map-route); }
+.search-results { display: grid; max-height: 160px; overflow: auto; gap: 4px; margin: 8px 0; }
+.search-results button { text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: var(--color-page); border: 0; padding: 9px; border-radius: 7px; cursor: pointer; }
 .map-note {
   font-size: 13px;
   color: #43666a;
@@ -719,13 +725,7 @@ button:hover {
     grid-template-columns: 1fr;
     gap: 18px;
   }
-  .schematic {
-    min-height: 250px;
-  }
-  .schematic svg {
-    height: 220px;
-  }
-  .google-map {
+  .leaflet-map {
     height: 280px;
   }
   .stop-top {
