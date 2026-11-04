@@ -1,6 +1,6 @@
 # Waywise
 
-Waywise is an intelligent multi-errand planner. Choose a starting point and two to four errands; it finds nearby venues, compares complete venue-and-order plans, and opens the selected stop order in Google Maps.
+Waywise is an intelligent errand planner. Choose a starting point and one to four errands; it finds nearby venues, compares complete venue-and-order plans, and opens the selected stop order in Google Maps. New trips start with an empty errand list.
 
 The planner is a model-based, utility-based goal agent. It searches the returned shortlist locally using one directional travel matrix and compares its best plan with a nearest-next baseline. It optimizes within that shortlist; it does not claim to find the best route across an entire city.
 
