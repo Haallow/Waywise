@@ -1,6 +1,6 @@
 # AGENTS.md — Waywise coding instructions
 
-Read this file, `Implementation_Plan.md`, and `READ.md` before edits. Waywise is a React/Vite and Express intelligent errand planner. The agent selects one venue for each of 2–4 errands and the visit order using exhaustive local search.
+Read this file, `Implementation_Plan.md`, and `README.md` before edits. Waywise is a React/Vite and Express intelligent errand planner. The agent selects one venue for each of 2–4 errands and the visit order using exhaustive local search.
 
 ## Boundaries
 
@@ -18,6 +18,6 @@ Read this file, `Implementation_Plan.md`, and `READ.md` before edits. Waywise is
 1. Inspect existing work before changing it.
 2. Implement and test pure agent behavior, then provider normalization and UI.
 3. Run `npm test` and `npm run build`; verify no Google Cloud dependencies or secrets enter the client bundle.
-4. Update `READ.md` with actual setup, verified status, and limitations. Do not claim a live route was tested unless it was.
+4. Update `README.md` with actual setup, verified status, and limitations. Do not claim a live route was tested unless it was.
 
 For live provider behavior, consult current official documentation and respect OSM tile, Overpass, Nominatim, and ORS limits. Do not use live requests in unit tests. Google Maps may recalculate its own route after handoff.

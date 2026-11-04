@@ -1,6 +1,6 @@
 # PlanB technical design audit (historical)
 
-This audit records the earlier Google based interface. Waywise migrated to the OSM/ORS stack afterward; its current implementation and verified status are described in `READ.md`.
+This audit records the earlier Google based interface. Waywise migrated to the OSM/ORS stack afterward; its current implementation and setup are described in `README.md`.
 
 ## Current Waywise migration review — 2026-11-02
 
