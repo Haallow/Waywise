@@ -87,6 +87,10 @@ a:focus-visible {
   width: 22px;
   height: 22px;
 }
+.brand-mark .waywise-logo {
+  width: 34px;
+  height: 34px;
+}
 .brand strong {
   font:
     800 23px Manrope,
